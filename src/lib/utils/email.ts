@@ -57,8 +57,9 @@ export async function sendEmail(
     const log = `${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - ${to}로 발송 성공`;
     appendLog(log);
     return { message: 'Success' };
-  } catch (error:any) {
-    const log = `${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - ${to}로 발송 실패: ${error.message}`;
+  } catch (error) {
+    const err = error as Error; // 타입 단언
+    const log = `${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - ${to}로 발송 실패: ${err.message}`;
     appendLog(log);
     throw error;
   }

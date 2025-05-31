@@ -15,6 +15,7 @@ export const POST: RequestHandler = async ({ request }) => {
     const result = await sendEmail(to, name, subject, content, contentType, imageBuffer);
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {
-    return new Response(JSON.stringify({ message: (error as Error).message }), { status: 500 });
+    const err = error as Error; // 타입 단언
+    return new Response(JSON.stringify({ message: err.message }), { status: 500 });
   }
 };
