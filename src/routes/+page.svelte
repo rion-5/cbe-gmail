@@ -7,20 +7,30 @@
   let recipients: Recipient[] = [];
   let logs: string[] = [];
   let isAuthenticated = false;
-
+  let gmailUser = '';
   onMount(async () => {
     if (isAuthenticated) return; // 이미 인증된 경우 중복 호출 방지
     const response = await fetch('/api/auth/status');
     const data = await response.json();
     isAuthenticated = data.authenticated;
-
+    gmailUser = data.gmailUser || 'Unknown';
     if (!isAuthenticated) {
       window.location.href = '/api/auth/login';
     }
 
-    const logResponse = await fetch('/api/logs');
-    logs = (await logResponse.json()).logs;
+    // Load initial logs
+    try {
+      const logResponse = await fetch('/api/logs');
+      if (logResponse.ok) {
+        logs = (await logResponse.json()).logs;
+      } else {
+        logs = ['Failed to load logs'];
+      }
+    } catch (error) {
+      logs = [`Error loading logs: ${(error as Error).message}`];
+    }
   });
+
 
   async function handleCsvUpload(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -78,6 +88,10 @@
 
 {#if isAuthenticated}
   <div class="space-y-6">
+        <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Sender Account</h2>
+      <p class="text-gray-600">Sending emails from: {gmailUser}</p>
+    </div>
     <div class="bg-white p-6 rounded-lg shadow">
       <h2 class="text-xl font-semibold mb-4">Upload Recipients (CSV)</h2>
       <input
