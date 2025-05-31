@@ -9,8 +9,8 @@ export const GET: RequestHandler = async () => {
   const authenticated = !!tokens;
   const gmailUser = process.env.GMAIL_USER || 'Unknown';
 
-  console.log(`tokens: ${tokens}`);
-  console.log(`authenticated: ${authenticated}`);
-  console.log(`gmailUser: ${gmailUser}`);
+  // console.log(`tokens: ${tokens}`);
+  // console.log(`authenticated: ${authenticated}`);
+  // console.log(`gmailUser: ${gmailUser}`);
   return new Response(JSON.stringify({ authenticated, gmailUser }), { status: 200 });
 };

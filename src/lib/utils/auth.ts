@@ -14,7 +14,6 @@ export function getAuthUrl(client: OAuth2Client): string {
   return client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
-    prompt: 'consent', // 리프레시 토큰 발급을 위해 추가
   });
 }
 
@@ -35,4 +34,22 @@ export async function getAccessToken(client: OAuth2Client, code: string) {
   client.setCredentials(tokens);
   saveToken(tokens);
   return tokens;
+}
+
+export async function refreshAccessToken(client: OAuth2Client) {
+  const tokens = loadToken();
+  if (tokens && tokens.refresh_token) {
+    try {
+      client.setCredentials({ refresh_token: tokens.refresh_token });
+      const { credentials } = await client.refreshAccessToken();
+      saveToken(credentials);
+      client.setCredentials(credentials);
+      return credentials;
+    } catch (error) {
+      const err = error as Error;
+      throw new Error(`Failed to refresh token: ${err.message}`);
+    }
+  } else {
+    throw new Error('No refresh token available');
+  }
 }

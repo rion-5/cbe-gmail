@@ -13,6 +13,7 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     const imageBuffer = image ? Buffer.from(await image.arrayBuffer()) : undefined;
     const result = await sendEmail(to, name, subject, content, contentType, imageBuffer);
+    console.log(`Sending email to ${to}`);
     return new Response(JSON.stringify(result), { status: 200 });
   } catch (error) {
     const err = error as Error; // 타입 단언

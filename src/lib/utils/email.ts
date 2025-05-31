@@ -1,8 +1,18 @@
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
-import { getOAuth2Client, loadToken } from './auth';
-import { writeFileSync } from 'fs';
+import { getOAuth2Client, loadToken, refreshAccessToken } from './auth';
+import { promises as fs } from 'fs';
 
+// 한글 제목을 RFC 2047에 따라 인코딩
+function encodeSubject(subject: string): string {
+  if (/^[\x00-\x7F]*$/.test(subject)) {
+    // ASCII 문자만 포함된 경우 인코딩 불필요
+    return subject;
+  }
+  // Base64 인코딩: =?UTF-8?B?{base64}?= 형식
+  const encoded = Buffer.from(subject).toString('base64');
+  return `=?UTF-8?B?${encoded}?=`;
+}
 export async function sendEmail(
   to: string,
   name: string,
@@ -12,10 +22,17 @@ export async function sendEmail(
   image?: Buffer
 ) {
   const client = getOAuth2Client();
-  const tokens = loadToken();
+  let tokens = loadToken();
   if (!tokens) throw new Error('No auth tokens found');
-  if (!tokens.refresh_token) throw new Error('No refresh token is set');
-  client.setCredentials(tokens);
+
+  // 토큰 갱신 시도
+  try {
+    await refreshAccessToken(client);
+  } catch (error) {
+    const err = error as Error;
+    await appendLog(`${new Date().toISOString()} - Token refresh failed: ${err.message}`);
+    throw error;
+  }
 
   const gmail = google.gmail({ version: 'v1', auth: client });
 
@@ -23,7 +40,7 @@ export async function sendEmail(
     `To: "${name}" <${to}>`,
     'Content-Type: ' + (contentType === 'html' ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8'),
     'MIME-Version: 1.0',
-    `Subject: ${subject}`,
+    `Subject: ${encodeSubject(subject)}`,
     '',
   ];
 
@@ -54,8 +71,8 @@ export async function sendEmail(
       userId: 'me',
       requestBody: { raw: encodedEmail },
     });
-    const log = `${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - ${to}로 발송 성공`;
-    appendLog(log);
+    const log = `${new Date().toISOString()} - Sent to ${to}: Success`;
+    await appendLog(log);
     return { message: 'Success' };
   } catch (error) {
     const err = error as Error; // 타입 단언
@@ -65,6 +82,6 @@ export async function sendEmail(
   }
 }
 
-function appendLog(log: string) {
-  writeFileSync('static/logs/email-logs.txt', log + '\n', { flag: 'a' });
+async function appendLog(log: string) {
+  await fs.appendFile('static/logs/email-logs.txt', log + '\n');
 }

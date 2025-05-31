@@ -7,52 +7,35 @@
   let recipients: Recipient[] = [];
   let logs: string[] = [];
   let isAuthenticated = false;
-  let gmailUser = '';
 
   onMount(async () => {
-    // Check authentication status and get GMAIL_USER
+    if (isAuthenticated) return; // 이미 인증된 경우 중복 호출 방지
     const response = await fetch('/api/auth/status');
     const data = await response.json();
     isAuthenticated = data.authenticated;
-    gmailUser = data.gmailUser || 'Unknown';
 
     if (!isAuthenticated) {
-      // Redirect to Google login
       window.location.href = '/api/auth/login';
     }
 
-    // Load initial logs
-    try {
-      const logResponse = await fetch('/api/logs');
-      if (logResponse.ok) {
-        logs = (await logResponse.json()).logs;
-      } else {
-        logs = ['Failed to load logs'];
-      }
-    } catch (error) {
-      logs = [`Error loading logs: ${(error as Error).message}`];
-    }
+    const logResponse = await fetch('/api/logs');
+    logs = (await logResponse.json()).logs;
   });
 
-async function handleCsvUpload(event: Event) {
-  const input = event.target as HTMLInputElement;
-  if (input.files && input.files[0]) {
-    const formData = new FormData();
-    formData.append('csv', input.files[0]);
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    const data = await response.json();
-    console.log('Upload response:', data); // 디버깅용 로그
-    if (response.ok) {
-      recipients = data.recipients || [];
+  async function handleCsvUpload(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const formData = new FormData();
+      formData.append('csv', input.files[0]);
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+      recipients = data.recipients;
       logs = [...logs, `Uploaded CSV with ${recipients.length} recipients`];
-    } else {
-      logs = [...logs, `CSV upload failed: ${data.message}`];
     }
   }
-}
 
   async function handleSendEmail({
     subject,
@@ -66,6 +49,7 @@ async function handleCsvUpload(event: Event) {
     image?: File;
   }) {
     for (const recipient of recipients) {
+      console.log(`Attempting to send email to ${recipient.email}`);
       const formData = new FormData();
       formData.append('to', recipient.email);
       formData.append('name', recipient.name);
@@ -81,19 +65,19 @@ async function handleCsvUpload(event: Event) {
         });
         const result = await response.json();
         logs = [...logs, `Sent to ${recipient.email}: ${result.message}`];
+        console.log(`Success: Sent to ${recipient.email}`);
       } catch (error) {
-        logs = [...logs, `Failed to send to ${recipient.email}: ${(error as Error).message}`];
+        const err = error as Error;
+        logs = [...logs, `Failed to send to ${recipient.email}: ${err.message}`];
+        console.error(`Error: Failed to send to ${recipient.email}`, error);
       }
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 딜레이
     }
   }
 </script>
 
 {#if isAuthenticated}
   <div class="space-y-6">
-    <div class="bg-white p-6 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-4">Sender Account</h2>
-      <p class="text-gray-600">Sending emails from: {gmailUser}</p>
-    </div>
     <div class="bg-white p-6 rounded-lg shadow">
       <h2 class="text-xl font-semibold mb-4">Upload Recipients (CSV)</h2>
       <input
