@@ -31,40 +31,43 @@ export async function sendEmail(
     await refreshAccessToken(client);
   } catch (error) {
     const err = error as Error;
-    await appendLog(`${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - Token refresh failed: ${err.message}`);
+    appendLog(`${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - Token refresh failed: ${err.message}`);
     throw error;
   }
 
   const gmail = google.gmail({ version: 'v1', auth: client });
 
+  const boundary = 'foo_bar_baz';
   const emailLines = [
     `To: ${encodeRFC2047(name)} <${to}>`,
-    'Content-Type: ' + (contentType === 'html' ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8'),
-    'MIME-Version: 1.0',
     `Subject: ${encodeRFC2047(subject)}`,
-    '',
+    'MIME-Version: 1.0',
   ];
 
-  if (contentType === 'html' && image) {
-    emailLines.push('Content-Type: multipart/related; boundary="foo_bar_baz"');
+ if (contentType === 'html' && image) {
+    emailLines.push(`Content-Type: multipart/related; boundary="${boundary}"`);
     emailLines.push('');
-    emailLines.push('--foo_bar_baz');
+    emailLines.push(`--${boundary}`);
     emailLines.push('Content-Type: text/html; charset=utf-8');
+    emailLines.push('Content-Transfer-Encoding: quoted-printable');
     emailLines.push('');
-    emailLines.push(content.replace('{{image}}', 'cid:image1'));
+    emailLines.push(content.replace('{{image}}', 'cid:image1')); // HTML에서 이미지 참조
     emailLines.push('');
-    emailLines.push('--foo_bar_baz');
+    emailLines.push(`--${boundary}`);
     emailLines.push('Content-Type: image/jpeg');
-    emailLines.push('Content-ID: <image1>');
+    emailLines.push('Content-ID: <image1>'); // Content-ID 명확히 설정
     emailLines.push('Content-Transfer-Encoding: base64');
     emailLines.push('');
     emailLines.push(image.toString('base64'));
-    emailLines.push('--foo_bar_baz--');
+    emailLines.push(`--${boundary}--`);
   } else {
+    emailLines.push('Content-Type: ' + (contentType === 'html' ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8'));
+    emailLines.push('');
     emailLines.push(content);
   }
 
   const email = emailLines.join('\r\n').trim();
+  appendLog(`${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - MIME Message:\n${email}`); // MIME 메시지 디버깅 로그
   const encodedEmail = Buffer.from(email).toString('base64').replace(/\+/g, '-').replace(/\//g, '_');
 
   try {
@@ -73,16 +76,16 @@ export async function sendEmail(
       requestBody: { raw: encodedEmail },
     });
     const log = `${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - Sent to ${to} ${name}: Success`;
-    await appendLog(log);
+    appendLog(log);
     return { message: 'Success' };
   } catch (error) {
     const err = error as Error; // 타입 단언
     const log = `${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - ${to} ${name}로 발송 실패: ${err.message}`;
-    await appendLog(log);
+    appendLog(log);
     throw error;
   }
 }
 
-async function appendLog(log: string) {
-  await fs.appendFile('static/logs/email-logs.txt', log + '\n');
+function appendLog(log: string) {
+  fs.appendFile('static/logs/email-logs.txt', log + '\n');
 }
