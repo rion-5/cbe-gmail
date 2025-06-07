@@ -22,7 +22,7 @@
 		if (sessionTimeout) clearTimeout(sessionTimeout);
 		if (sessionInterval) clearInterval(sessionInterval);	
 		// const sessionDuration = 115 * 60; // 초 단위 (115분)
-		const sessionDuration = 1 * 60; // 초 단위 (1분)
+		const sessionDuration = 115 * 60; // 초 단위 (1분)
 		sessionRemaining = sessionDuration;
 		// 1초마다 남은 시간 감소
 		sessionInterval = setInterval(() => {
@@ -38,8 +38,8 @@
 						goto('/login?redirect=' + encodeURIComponent(window.location.pathname));
 						// 현재 경로를 쿼리로 붙여서 로그인 후 다시 돌아올 수 있게 함
 					},
-					// 5 * 60 * 1000 // 2단계까지 5분 대기
-					1 * 60 * 1000
+					5 * 60 * 1000 // 2단계까지 5분 대기
+					// 1 * 60 * 1000
 				);
 			},
 			// sessionDuration * 1000 // 1단계까지 115분 대기
