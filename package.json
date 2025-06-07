@@ -42,6 +42,7 @@
 		"autoprefixer": "^10.4.21",
 		"dotenv": "^16.5.0",
 		"googleapis": "^149.0.0",
+		"jose": "^6.0.11",
 		"nodemailer": "^7.0.3",
 		"papaparse": "^5.5.3",
 		"postcss": "^8.5.4"

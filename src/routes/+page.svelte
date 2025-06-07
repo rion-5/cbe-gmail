@@ -4,11 +4,22 @@
   import LogDisplay from '$lib/components/LogDisplay.svelte';
   import type { Recipient } from '$lib/types';
 
+  import { auth } from '$lib/stores/auth';
+	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
+
   let recipients: Recipient[] = [];
   let logs: string[] = [];
   let isAuthenticated = false;
   let gmailUser = '';
+
+  let userId: string | null;
+	let userName: string | null;
+
   onMount(async () => {
+    userId = $auth.id_no;
+		userName = $auth.user_name;
+    //gmail에 대한 인증
     if (isAuthenticated) return; // 이미 인증된 경우 중복 호출 방지
     const response = await fetch('/api/auth/status');
     const data = await response.json();
@@ -81,7 +92,7 @@
         logs = [...logs, `Failed to send to ${recipient.email}: ${err.message}`];
         console.error(`Error: Failed to send to ${recipient.email}`, error);
       }
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 딜레이
+      await new Promise(resolve => setTimeout(resolve, 300)); // 0.3초 딜레이
     }
   }
 </script>
