@@ -20,14 +20,20 @@
 
 	function startSessionTimer() {
 		if (sessionTimeout) clearTimeout(sessionTimeout);
-		sessionTimeout = setTimeout(
-			() => {
+		if (sessionInterval) clearInterval(sessionInterval);	
+		// const sessionDuration = 115 * 60; // 초 단위 (115분)
+		const sessionDuration = 1 * 60; // 초 단위 (1분)
+		sessionRemaining = sessionDuration;
+		// 1초마다 남은 시간 감소
+		sessionInterval = setInterval(() => {
+			sessionRemaining--;
+			if (sessionRemaining <= 0) clearInterval(sessionInterval!);
+		}, 1000);
+
+		sessionTimeout = setTimeout(() => {
 				sessionWarning = true; // 1단계: 세션 만료 경고 상태로 전환
-
-				setTimeout(
-					() => {
+				const logoutTimer = setTimeout(() => {
 						if (!sessionWarning) return; // 사용자가 반응했으면 자동 로그아웃 중지
-
 						logout(); // 2단계: 실제 로그아웃 수행
 						goto('/login?redirect=' + encodeURIComponent(window.location.pathname));
 						// 현재 경로를 쿼리로 붙여서 로그인 후 다시 돌아올 수 있게 함
@@ -36,35 +42,9 @@
 					1 * 60 * 1000
 				);
 			},
-			// 115 * 60 * 1000 // 1단계까지 115분 대기
-			1 * 60 * 1000
+			// sessionDuration * 1000 // 1단계까지 115분 대기
+			sessionDuration * 1000
 		);
-		if (sessionTimeout) clearTimeout(sessionTimeout);
-		if (sessionInterval) clearInterval(sessionInterval);
-
-		// const sessionDuration = 115 * 60; // 초 단위 (115분)
-		const sessionDuration = 1 * 60; // 초 단위 (1분)
-
-		sessionRemaining = sessionDuration;
-
-		// 1초마다 남은 시간 감소
-		sessionInterval = setInterval(() => {
-			sessionRemaining--;
-			if (sessionRemaining <= 0) clearInterval(sessionInterval!);
-		}, 1000);
-
-		sessionTimeout = setTimeout(() => {
-			sessionWarning = true;
-			setTimeout(
-				() => {
-					if (!sessionWarning) return;
-					logout();
-					goto('/login?redirect=' + encodeURIComponent(window.location.pathname));
-				},
-				// 5 * 60 * 1000
-				1 * 60 * 1000
-			);
-		}, sessionDuration * 1000);
 	}
 
 	async function extendSession() {
@@ -134,7 +114,6 @@
 		return () => {
 			if (sessionTimeout) clearTimeout(sessionTimeout);
 			if (sessionInterval) clearInterval(sessionInterval);
-			if (sessionTimeout) clearTimeout(sessionTimeout);
 			['click', 'mousemove', 'keydown'].forEach((event) =>
 				window.removeEventListener(event, resetSessionTimer)
 			);
