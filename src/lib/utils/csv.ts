@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import type { Recipient } from '../types';
+import type { Recipient } from '$lib/types';
 
 export async function parseCsv(file: Buffer): Promise<Recipient[]> {
   return new Promise((resolve, reject) => {
@@ -21,7 +21,7 @@ export async function parseCsv(file: Buffer): Promise<Recipient[]> {
       error: (error: any) => {
         console.error('CSV parsing error:', error); // 에러 로그
         reject(error);
-      },
+      }
     });
   });
 }

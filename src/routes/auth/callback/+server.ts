@@ -1,5 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit';
-import { getOAuth2Client, getAccessToken } from '$lib/utils/auth';
+import { getOAuth2Client, getAccessToken } from '$lib/utils/oauth-google';
 
 export const GET: RequestHandler = async ({ url }) => {
   const code = url.searchParams.get('code');

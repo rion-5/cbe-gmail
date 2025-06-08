@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
-import { getOAuth2Client, loadToken, refreshAccessToken } from './auth';
+import { getOAuth2Client, loadToken, refreshAccessToken } from './oauth-google';
 import { promises as fs } from 'fs';
 
 // 한글 문자열을 RFC 2047에 따라 인코딩

@@ -1,4 +1,4 @@
-// src/routes/api/auth/verify/+server.ts
+// src/routes/api/session/verify/+server.ts
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';

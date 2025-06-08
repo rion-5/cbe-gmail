@@ -1,4 +1,4 @@
-// src/routes/api/auth/extend/+server.ts
+// src/routes/api/session/extend/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { extendSession } from '$lib/server/session';

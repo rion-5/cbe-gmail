@@ -21,12 +21,12 @@
 		userName = $auth.user_name;
     //gmail에 대한 인증
     if (isAuthenticated) return; // 이미 인증된 경우 중복 호출 방지
-    const response = await fetch('/api/auth/status');
+    const response = await fetch('/api/oauth-google/status');
     const data = await response.json();
     isAuthenticated = data.authenticated;
     gmailUser = data.gmailUser || 'Unknown';
     if (!isAuthenticated) {
-      window.location.href = '/api/auth/login';
+      window.location.href = '/api/oauth-google/login';
     }
 
     // Load initial logs

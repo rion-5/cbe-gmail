@@ -1,3 +1,4 @@
+// src/lib/stores/auth.ts
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
@@ -30,7 +31,7 @@ auth.subscribe((value) => {
 
 export async function logout() {
   try {
-    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    const response = await fetch('/api/session/logout', { method: 'POST' });
     if (!response.ok) {
       throw new Error('로그아웃 실패');
     }

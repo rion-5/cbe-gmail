@@ -1,4 +1,4 @@
-// src/routes/api/auth/logout/+server.ts
+// src/routes/api/session/logout/+server.ts
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { clearSession } from '$lib/server/session';

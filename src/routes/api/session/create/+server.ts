@@ -1,4 +1,4 @@
-// src/routes/api/auth/session/+server.ts
+// src/routes/api/session/create/+server.ts
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';

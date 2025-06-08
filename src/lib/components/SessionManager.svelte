@@ -49,7 +49,7 @@
 
 	async function extendSession() {
 		try {
-			const response = await fetch('/api/auth/extend', { 
+			const response = await fetch('/api/session/extend', { 
 				method: 'POST',
 				credentials: 'include' });
 			if (!response.ok) {
@@ -72,7 +72,7 @@
 	async function verifyAuth() {
 		isLoading = true;
 		try {
-			const response = await fetch('/api/auth/verify', {
+			const response = await fetch('/api/session/verify', {
 				credentials: 'include'
 			});
 			if (!response.ok) {

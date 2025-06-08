@@ -1,7 +1,7 @@
-// src/routes/api/auth/login/+server.ts
+// src/routes/api/oauth-google/login/+server.ts
 
 import type { RequestHandler } from '@sveltejs/kit';
-import { getAuthUrl, getOAuth2Client } from '$lib/utils/auth';
+import { getAuthUrl, getOAuth2Client } from '$lib/utils/oauth-google';
 
 export const GET: RequestHandler = async () => {
   const client = getOAuth2Client();        // OAuth2 클라이언트 생성

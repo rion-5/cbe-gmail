@@ -1,3 +1,5 @@
+// src/routes/api/logs/+server.ts
+
 import type { RequestHandler } from '@sveltejs/kit';
 import { readFileSync } from 'fs';
 import { join } from 'path';

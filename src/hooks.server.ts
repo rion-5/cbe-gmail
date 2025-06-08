@@ -10,7 +10,7 @@ const ROUTE_CONFIG = {
     '/register',
     '/forgot-password',
     '/reset-password',
-    '/api/auth/login',
+    '/api/oauth-google/login',
     '/api/auth/register',
   ],
 

@@ -1,5 +1,6 @@
+// src/routes/api/oauth-google/status/+server.ts
 import type { RequestHandler } from '@sveltejs/kit';
-import { loadToken } from '$lib/utils/auth';
+import { loadToken } from '$lib/utils/oauth-google';
 import dotenv from 'dotenv';
 
 dotenv.config();

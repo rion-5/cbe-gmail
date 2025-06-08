@@ -1,3 +1,4 @@
+// src/routes/api/send/+server.ts
 import type { RequestHandler } from '@sveltejs/kit';
 import { sendEmail } from '$lib/utils/email';
 
