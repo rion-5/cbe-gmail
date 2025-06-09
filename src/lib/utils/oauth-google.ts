@@ -14,6 +14,7 @@ export function getAuthUrl(client: OAuth2Client): string {
   return client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
+    prompt: 'consent', // 항상 사용자 동의를 요구해서 refresh_token을 다시 받게 함
   });
 }
 
