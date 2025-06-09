@@ -104,12 +104,12 @@
 </svelte:head>
 
 <main class="flex min-h-screen items-start justify-center bg-gray-50">
-	<div class="login-box mt-24 w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
+	<div class="login-box mt-24 w-full max-w-md rounded-2xl bg-green-200 p-8 shadow-lg">
 		<h1
 			class="mb-6 text-center text-4xl font-bold text-indigo-900"
-			style="font-family: 'Playfair Display', serif;"
+			style="font-family: Montserrat, sans-serif;"
 		>
-			CBE GMAIL
+			Mail Sender
 		</h1>
 		<h2
 			class="mb-6 text-center text-xl font-semibold text-gray-700"
@@ -120,7 +120,7 @@
 		<input
 			class="mb-4 w-full rounded-lg border border-gray-200 p-3 text-gray-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
 			type="text"
-			placeholder="Student ID"
+			placeholder="Portal ID"
 			bind:this={loginIdInput}
 			bind:value={loginId}
 			onkeydown={handleKeydown}
