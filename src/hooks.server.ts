@@ -50,6 +50,16 @@ export const handle: Handle = async ({ event, resolve }) => {
   const { pathname } = event.url;
   const routeType = getRouteType(pathname);
 
+  if (event.request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      }
+    });
+  }
   // 인증이 필요한 경로인데 로그인하지 않은 경우
   if (routeType === 'protected' && !session.user) {
     const redirectUrl = `${event.url.origin}/login?redirect=${encodeURIComponent(pathname + event.url.search)}`;
@@ -62,5 +72,14 @@ export const handle: Handle = async ({ event, resolve }) => {
     return Response.redirect(redirectUrl, 302);
   }
 
-  return resolve(event);
+  // return resolve(event);
+    // 실제 응답 처리
+  const response = await resolve(event);
+
+  // CORS 헤더를 모든 응답에 추가
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+
+  return response;
 };
