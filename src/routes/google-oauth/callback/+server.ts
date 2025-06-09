@@ -1,3 +1,5 @@
+// src/routes/google-oauth/callback/+server.ts
+
 import type { RequestHandler } from '@sveltejs/kit';
 import { getOAuth2Client, getAccessToken } from '$lib/utils/oauth-google';
 

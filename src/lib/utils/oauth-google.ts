@@ -5,11 +5,28 @@ import { readFileSync, writeFileSync } from 'fs';
 const SCOPES = ['https://www.googleapis.com/auth/gmail.send'];
 const TOKEN_PATH = 'token.json';
 
+/** OAuth2 클라이언트 생성 */
 export function getOAuth2Client(): OAuth2Client {
   const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = process.env;
-  return new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
+  const client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
+
+  // 자동 토큰 갱신 시 저장
+  client.on('tokens', (newTokens) => {
+    const currentTokens = loadToken();
+    if (newTokens.access_token) {
+      const mergedTokens = {
+        ...currentTokens,
+        ...newTokens,
+        refresh_token: newTokens.refresh_token || currentTokens?.refresh_token,
+      };
+      saveToken(mergedTokens);
+    }
+  });
+
+  return client;
 }
 
+/** 인증 URL 생성 */
 export function getAuthUrl(client: OAuth2Client): string {
   return client.generateAuthUrl({
     access_type: 'offline',
@@ -18,10 +35,12 @@ export function getAuthUrl(client: OAuth2Client): string {
   });
 }
 
+/** 토큰 저장 */
 export function saveToken(token: any) {
   writeFileSync(TOKEN_PATH, JSON.stringify(token));
 }
 
+/** 토큰 로드 */
 export function loadToken(): any {
   try {
     return JSON.parse(readFileSync(TOKEN_PATH, 'utf-8'));
@@ -30,6 +49,7 @@ export function loadToken(): any {
   }
 }
 
+/** 인증 코드로 토큰 발급 및 저장 */
 export async function getAccessToken(client: OAuth2Client, code: string) {
   const { tokens } = await client.getToken(code);
   client.setCredentials(tokens);
@@ -37,20 +57,11 @@ export async function getAccessToken(client: OAuth2Client, code: string) {
   return tokens;
 }
 
-export async function refreshAccessToken(client: OAuth2Client) {
+/** 기존 토큰을 불러와 클라이언트에 설정 */
+export function initializeOAuthClient(client: OAuth2Client): void {
   const tokens = loadToken();
-  if (tokens && tokens.refresh_token) {
-    try {
-      client.setCredentials({ refresh_token: tokens.refresh_token });
-      const { credentials } = await client.refreshAccessToken();
-      saveToken(credentials);
-      client.setCredentials(credentials);
-      return credentials;
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to refresh token: ${err.message}`);
-    }
-  } else {
-    throw new Error('No refresh token available');
+  if (!tokens) {
+    throw new Error('No tokens found. Please authenticate first.');
   }
+  client.setCredentials(tokens);
 }

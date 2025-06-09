@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { google } from 'googleapis';
-import { getOAuth2Client, loadToken, refreshAccessToken } from './oauth-google';
+import { getOAuth2Client, loadToken, initializeOAuthClient } from './oauth-google';
 import { promises as fs } from 'fs';
 
 // 한글 문자열을 RFC 2047에 따라 인코딩
@@ -28,7 +28,7 @@ export async function sendEmail(
 
   // 토큰 갱신 시도
   try {
-    await refreshAccessToken(client);
+    await initializeOAuthClient(client);
   } catch (error) {
     const err = error as Error;
     appendLog(`${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - Token refresh failed: ${err.message}`);
@@ -45,26 +45,39 @@ export async function sendEmail(
   ];
 
  if (contentType === 'html' && image) {
-    emailLines.push(`Content-Type: multipart/related; boundary="${boundary}"`);
-    emailLines.push('');
-    emailLines.push(`--${boundary}`);
-    emailLines.push('Content-Type: text/html; charset=utf-8');
-    emailLines.push('Content-Transfer-Encoding: quoted-printable');
-    emailLines.push('');
-    emailLines.push(content.replace('{{image}}', 'cid:image1')); // HTML에서 이미지 참조
-    emailLines.push('');
-    emailLines.push(`--${boundary}`);
-    emailLines.push('Content-Type: image/jpeg');
-    emailLines.push('Content-ID: <image1>'); // Content-ID 명확히 설정
-    emailLines.push('Content-Transfer-Encoding: base64');
-    emailLines.push('');
-    emailLines.push(image.toString('base64'));
-    emailLines.push(`--${boundary}--`);
-  } else {
-    emailLines.push('Content-Type: ' + (contentType === 'html' ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8'));
-    emailLines.push('');
-    emailLines.push(content);
-  }
+  emailLines.push(`Content-Type: multipart/related; boundary="${boundary}"`);
+  emailLines.push('MIME-Version: 1.0'); // MIME 버전 명시
+  emailLines.push('');
+  
+  // HTML 파트
+  emailLines.push(`--${boundary}`);
+  emailLines.push('Content-Type: text/html; charset=utf-8');
+  emailLines.push('Content-Transfer-Encoding: quoted-printable');
+  emailLines.push('');
+  emailLines.push(content.replace('{{image}}', 'cid:image1'));
+  emailLines.push('');
+  
+  // 이미지 파트
+  emailLines.push(`--${boundary}`);
+  emailLines.push('Content-Type: image/jpeg; name="image.jpg"'); // name 속성 추가
+  emailLines.push('Content-Transfer-Encoding: base64');
+  emailLines.push('Content-ID: <image1>'); // 괄호 포함
+  emailLines.push('Content-Disposition: inline; filename="image.jpg"'); // inline 명시
+  emailLines.push('');
+  
+  // Base64 데이터를 76자마다 줄바꿈 (RFC 2045 준수)
+  const base64Data = image.toString('base64');
+  const chunks = base64Data.match(/.{1,76}/g) || [];
+  chunks.forEach(chunk => emailLines.push(chunk));
+  
+  emailLines.push('');
+  emailLines.push(`--${boundary}--`);
+} else {
+  emailLines.push('Content-Type: ' + (contentType === 'html' ? 'text/html; charset=utf-8' : 'text/plain; charset=utf-8'));
+  emailLines.push('MIME-Version: 1.0');
+  emailLines.push('');
+  emailLines.push(content);
+}
 
   const email = emailLines.join('\r\n').trim();
   appendLog(`${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} - MIME Message:\n${email}`); // MIME 메시지 디버깅 로그
