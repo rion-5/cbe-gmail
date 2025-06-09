@@ -12,6 +12,7 @@ const ROUTE_CONFIG = {
     '/reset-password',
     '/api/oauth-google/login',
     '/api/auth/register',
+    '/api/upload'
   ],
 
   // 인증된 사용자만 접근 가능한 경로
@@ -49,7 +50,15 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.session = session;
   const { pathname } = event.url;
   const routeType = getRouteType(pathname);
-
+  
+// /api/upload는 인증 없이 허용
+  if (pathname === '/api/upload') {
+    const response = await resolve(event);
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    return response;
+  }
   if (event.request.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
