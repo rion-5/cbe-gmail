@@ -52,6 +52,11 @@
         method: 'POST',
         body: formData,
       });
+
+      if (!response.ok) {
+    console.error('Upload failed:', response.status, await response.text());
+    throw new Error(`Upload failed: ${response.status}`);
+  }
       const data = await response.json();
       recipients = data.recipients;
       logs = [...logs, `Uploaded CSV with ${recipients.length} recipients`];
